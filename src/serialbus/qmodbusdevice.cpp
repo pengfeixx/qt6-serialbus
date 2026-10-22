@@ -1,5 +1,6 @@
 // Copyright (C) 2017 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #include "qmodbusdevice.h"
 #include "qmodbusdevice_p.h"
@@ -199,7 +200,7 @@ void QModbusDevice::setConnectionParameter(ConnectionParameter parameter, const 
                                     PDU's function code not matching.
 
     If any of the above intermediate errors occurred, the frame is likely
-    resent until the maximum number of retries has been reached.
+    present until the maximum number of retries has been reached.
 
     The list of intermediate errors can be inspected from the \l QModbusReply
     intermediate errors function.
@@ -257,7 +258,7 @@ bool QModbusDevice::connectDevice()
 */
 void QModbusDevice::disconnectDevice()
 {
-    if (state() == QModbusDevice::UnconnectedState)
+    if (auto s = state(); s == QModbusDevice::UnconnectedState || s == QModbusDevice::ClosingState)
         return;
 
     setState(QModbusDevice::ClosingState);

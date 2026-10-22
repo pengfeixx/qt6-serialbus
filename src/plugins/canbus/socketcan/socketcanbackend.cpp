@@ -1,5 +1,6 @@
 // Copyright (C) 2017 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:critical reason:data-parser
 
 #include "socketcanbackend.h"
 
@@ -169,7 +170,7 @@ void SocketCanBackend::resetConfigurations()
     QCanBusDevice::setConfigurationParameter(
                 QCanBusDevice::CanFdKey, false);
     QCanBusDevice::setConfigurationParameter(
-                QCanBusDevice::BitRateKey, 500000);
+                QCanBusDevice::BitRateKey, QVariant());
 }
 
 bool SocketCanBackend::open()
@@ -317,8 +318,10 @@ bool SocketCanBackend::applyConfigurationParameter(ConfigurationKey key, const Q
     }
     case QCanBusDevice::BitRateKey:
     {
-        const quint32 bitRate = value.toUInt();
-        success = libSocketCan->setBitrate(canSocketName, bitRate);
+        if (!value.isNull()) {
+            const quint32 bitRate = value.toUInt();
+            success = libSocketCan->setBitrate(canSocketName, bitRate);
+        }
         break;
     }
     default:

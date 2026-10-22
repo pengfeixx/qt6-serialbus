@@ -1,6 +1,7 @@
 // Copyright (C) 2017 Denis Shienkov <denis.shienkov@gmail.com>
 // Copyright (C) 2017 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:critical reason:data-parser
 
 #include "tinycanbackend.h"
 #include "tinycanbackend_p.h"
@@ -166,15 +167,6 @@ bool TinyCanBackendPrivate::open()
         const int ret = ::CanDeviceOpen(channelIndex, nullptr);
         if (Q_UNLIKELY(ret < 0)) {
             q->setError(systemErrorString(ret), QCanBusDevice::CanBusError::ConnectionError);
-            return false;
-        }
-    }
-
-    {
-        const int ret = ::CanSetMode(channelIndex, OP_CAN_START, CAN_CMD_ALL_CLEAR);
-        if (Q_UNLIKELY(ret < 0)) {
-            q->setError(systemErrorString(ret), QCanBusDevice::CanBusError::ConnectionError);
-            ::CanDeviceClose(channelIndex);
             return false;
         }
     }
@@ -499,6 +491,13 @@ bool TinyCanBackend::open()
                           key, qUtf16Printable(param.toString()));
             }
         }
+    }
+
+    const int ret = ::CanSetMode(d->channelIndex, OP_CAN_START, CAN_CMD_ALL_CLEAR);
+    if (Q_UNLIKELY(ret < 0)) {
+        setError(d->systemErrorString(ret), QCanBusDevice::CanBusError::ConnectionError);
+        close();
+        return false;
     }
 
     setState(QCanBusDevice::ConnectedState);

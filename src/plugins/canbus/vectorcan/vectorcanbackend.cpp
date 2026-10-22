@@ -1,5 +1,6 @@
 // Copyright (C) 2017 Denis Shienkov <denis.shienkov@gmail.com>
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:critical reason:data-parser
 
 #include "vectorcanbackend.h"
 #include "vectorcanbackend_p.h"
@@ -326,7 +327,7 @@ bool VectorCanBackendPrivate::setConfigurationParameter(QCanBusDevice::Configura
     {
         if (value.toBool()) {
             XLdriverConfig config;
-            if (Q_UNLIKELY(::xlGetDriverConfig(&config) == XL_SUCCESS)) {
+            if (Q_LIKELY(::xlGetDriverConfig(&config) == XL_SUCCESS)) {
                 if (config.channel[channelIndex].channelCapabilities & XL_CHANNEL_FLAG_CANFD_SUPPORT) {
                     usesCanFd = true;
                     return true;
@@ -467,7 +468,9 @@ void VectorCanBackendPrivate::startRead()
                 }
                 break;
             }
-            if (event.tag != XL_CAN_EV_TAG_RX_OK)
+            const bool isReceivedFrame = event.tag == XL_CAN_EV_TAG_RX_OK;
+            const bool isEchoFrame = transmitEcho && (event.tag == XL_CAN_EV_TAG_TX_OK);
+            if (!isReceivedFrame && !isEchoFrame)
                 continue;
 
             const XL_CAN_EV_RX_MSG &msg = event.tagData.canRxOkMsg;
@@ -488,6 +491,7 @@ void VectorCanBackendPrivate::startRead()
             frame.setTimeStamp(QCanBusFrame::TimeStamp::fromMicroSeconds(event.timeStamp / 1000));
             frame.setExtendedFrameFormat(msg.id & XL_CAN_EXT_MSG_ID);
             frame.setBitrateSwitch(msg.flags & XL_CAN_RXMSG_FLAG_BRS);
+            frame.setLocalEcho(isEchoFrame);
             frame.setFrameType((msg.flags & XL_CAN_RXMSG_FLAG_RTR)
                                 ? QCanBusFrame::RemoteRequestFrame
                                 : (msg.flags & XL_CAN_RXMSG_FLAG_EF)

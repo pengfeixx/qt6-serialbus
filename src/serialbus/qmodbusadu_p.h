@@ -1,5 +1,6 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #ifndef QMODBUSADU_P_H
 #define QMODBUSADU_P_H
@@ -51,15 +52,18 @@ public:
     }
 
     inline QModbusPdu pdu() const {
-        Q_ASSERT_X(!m_data.isEmpty(), "QModbusAdu::pdu()", "Empty ADU.");
+        Q_ASSERT_X(m_data.size() >= 2, "QModbusAdu::pdu()", "Not enough bytes in ADU.");
         return QModbusPdu(QModbusPdu::FunctionCode(m_data.at(1)), m_data.mid(2, size() - 2));
     }
 
     template <typename T>
     auto checksum() const -> decltype(T()) {
-        Q_ASSERT_X(!m_data.isEmpty(), "QModbusAdu::checksum()", "Empty ADU.");
-        if (m_type == Ascii)
+        if (m_type == Ascii) {
+            Q_ASSERT_X(!m_data.isEmpty(), "QModbusAdu::checksum()", "Empty ADU.");
             return quint8(m_data[m_data.size() - 1]);
+        }
+        Q_ASSERT_X(m_data.size() >= 2, "QModbusAdu::checksum()",
+                   "Not enough bytes to calculate checksum.");
         return quint16(quint8(m_data[m_data.size() - 2]) << 8 | quint8(m_data[m_data.size() - 1]));
     }
 

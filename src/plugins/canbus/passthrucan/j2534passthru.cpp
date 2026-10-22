@@ -1,5 +1,6 @@
 // Copyright (C) 2017 Ford Motor Company.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
 
 #include "j2534passthru.h"
 
@@ -36,6 +37,8 @@ struct SArray
 const int StringBufferSize = 256;
 
 } // anonymous namespace
+
+QT_BEGIN_NAMESPACE
 
 Q_LOGGING_CATEGORY(QT_CANBUS_PLUGINS_PASSTHRU, "qt.canbus.plugins.passthru", QtWarningMsg)
 
@@ -187,3 +190,5 @@ PassThru::Status PassThru::handleResult(long statusCode)
 }
 
 } // namespace J2534
+
+QT_END_NAMESPACE
